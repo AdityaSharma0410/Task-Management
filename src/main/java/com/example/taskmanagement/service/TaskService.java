@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class TaskService {
@@ -23,5 +24,21 @@ public class TaskService {
         if (task != null) {
             taskrepository.delete(task);
         }
+    }
+    public Task updateTask(Long id, Task updatedtask)
+    {
+        Optional<Task> existingTask = taskrepository.findById(id);
+        if(existingTask.isPresent())
+        {
+            Task task = existingTask.get();
+            task.setTitle(updatedtask.getTitle());
+            task.setStatus(updatedtask.getStatus());
+            return taskrepository.save(task);
+        }
+        else
+        {
+            return null;
+        }
+
     }
 }
