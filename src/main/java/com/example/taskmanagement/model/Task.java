@@ -11,6 +11,9 @@ public class Task {
     String title;
     @Column(nullable = false)
     String status;
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    Category category;
 
     public Long getId() {
         return id;
@@ -34,5 +37,13 @@ public class Task {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
     }
 }

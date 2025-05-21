@@ -12,8 +12,17 @@ import java.util.Optional;
 public class TaskService {
     @Autowired
     TaskRepository taskrepository;
+    @Autowired
+    CategoryService categoryService;
     // Add methods to interact with the TaskRepository here
     public Task createTask(Task task) {
+        if (task == null) {
+            throw new IllegalArgumentException("Task cannot be null");
+        }
+        if (task.getCategory() != null && task.getCategory().getId() != null) {
+            categoryService.getCategoryById(task.getCategory().getId())
+                    .orElseThrow(() -> new RuntimeException("Category not found"));
+        }
         return taskrepository.save(task);
     }
     public List<Task> getAllTasks() {
@@ -33,6 +42,7 @@ public class TaskService {
             Task task = existingTask.get();
             task.setTitle(updatedtask.getTitle());
             task.setStatus(updatedtask.getStatus());
+            task.setCategory(updatedtask.getCategory());
             return taskrepository.save(task);
         }
         else
