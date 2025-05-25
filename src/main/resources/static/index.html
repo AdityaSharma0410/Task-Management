@@ -71,6 +71,10 @@
                             <!-- Populated dynamically -->
                         </select>
                     </div>
+                    <div class="mb-3">
+                        <label for="dueDate" class="form-label">Due Date</label>
+                        <input type="date" class="form-control" id="dueDate">
+                    </div>
                     <button type="submit" class="btn btn-primary">Add Task</button>
                 </form>
             </div>
@@ -98,6 +102,7 @@
                 <th>Title</th>
                 <th>Status</th>
                 <th>Category</th>
+                <th>Due Date</th>
                 <th>Actions</th>
             </tr>
             </thead>
@@ -137,6 +142,10 @@
                             <!-- Populated dynamically -->
                         </select>
                     </div>
+                    <div class="mb-3">
+                        <label for="editDueDate" class="form-label">Due Date</label>
+                        <input type="date" class="form-control" id="editDueDate">
+                    </div>
                     <button type="submit" class="btn btn-primary">Save Changes</button>
                 </form>
             </div>
@@ -163,17 +172,14 @@
             headers: { 'Authorization': authHeader }
         })
         .then(response => {
-            if (response.ok) {
-                document.getElementById('loginSection').classList.add('d-none');
-                document.getElementById('taskSection').classList.remove('d-none');
-                document.getElementById('usernameDisplay').textContent = username;
-                fetchCategories();
-                fetchTasks();
-            } else {
-                showError('Login failed: Invalid credentials');
-            }
+            if (!response.ok) throw new Error('Login failed: Invalid credentials');
+            document.getElementById('loginSection').classList.add('d-none');
+            document.getElementById('taskSection').classList.remove('d-none');
+            document.getElementById('usernameDisplay').textContent = username;
+            fetchCategories();
+            fetchTasks();
         })
-        .catch(error => showError('Error during login: ' + error));
+        .catch(error => showError(error.message));
     });
 
     // Handle logout
@@ -215,6 +221,7 @@
         const title = document.getElementById('title').value;
         const status = document.getElementById('status').value;
         const categoryId = document.getElementById('category').value;
+        const dueDate = document.getElementById('dueDate').value || null;
 
         fetch('/api/tasks', {
             method: 'POST',
@@ -222,7 +229,7 @@
                 'Content-Type': 'application/json',
                 'Authorization': authHeader
             },
-            body: JSON.stringify({ title, status, categoryId })
+            body: JSON.stringify({ title, status, categoryId, dueDate })
         })
         .then(response => {
             if (!response.ok) throw new Error('Failed to create task');
@@ -242,6 +249,7 @@
         const title = document.getElementById('editTitle').value;
         const status = document.getElementById('editStatus').value;
         const categoryId = document.getElementById('editCategory').value;
+        const dueDate = document.getElementById('editDueDate').value || null;
 
         fetch(`/api/tasks/${id}`, {
             method: 'PUT',
@@ -249,7 +257,7 @@
                 'Content-Type': 'application/json',
                 'Authorization': authHeader
             },
-            body: JSON.stringify({ title, status, categoryId })
+            body: JSON.stringify({ title, status, categoryId, dueDate })
         })
         .then(response => {
             if (!response.ok) throw new Error('Failed to update task');
@@ -332,13 +340,15 @@
         const taskList = document.getElementById('taskList');
         const row = document.createElement('tr');
         const statusClass = task.status === 'COMPLETED' ? 'text-success' : 'text-warning';
+        const dueDateText = task.dueDate ? task.dueDate : 'None';
         row.innerHTML = `
             <td>${task.id}</td>
             <td>${task.title}</td>
             <td class="${statusClass}">${task.status}</td>
             <td>${task.category ? task.category.name : 'None'}</td>
+            <td>${dueDateText}</td>
             <td>
-                <button class="btn btn-warning btn-sm me-2" onclick="openEditModal(${task.id}, '${task.title}', '${task.status}', ${task.category ? task.category.id : null})">Edit</button>
+                <button class="btn btn-warning btn-sm me-2" onclick="openEditModal(${task.id}, '${task.title}', '${task.status}', ${task.category ? task.category.id : null}, '${task.dueDate || ''}')">Edit</button>
                 <button class="btn btn-danger btn-sm" onclick="deleteTask(${task.id})">Delete</button>
             </td>
         `;
@@ -346,11 +356,12 @@
     }
 
     // Open edit modal with task data
-    function openEditModal(id, title, status, categoryId) {
+    function openEditModal(id, title, status, categoryId, dueDate) {
         document.getElementById('editTaskId').value = id;
         document.getElementById('editTitle').value = title;
         document.getElementById('editStatus').value = status;
         document.getElementById('editCategory').value = categoryId || '';
+        document.getElementById('editDueDate').value = dueDate || '';
         new bootstrap.Modal(document.getElementById('editTaskModal')).show();
     }
 

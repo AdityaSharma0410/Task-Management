@@ -11,44 +11,55 @@ import java.util.Optional;
 @Service
 public class TaskService {
     @Autowired
-    TaskRepository taskrepository;
+    private TaskRepository taskRepository;
     @Autowired
-    CategoryService categoryService;
-    // Add methods to interact with the TaskRepository here
+    private CategoryService categoryService;
+
     public Task createTask(Task task) {
         if (task == null) {
             throw new IllegalArgumentException("Task cannot be null");
+        }
+        if (task.getTitle() == null || task.getTitle().isEmpty()) {
+            throw new IllegalArgumentException("Title cannot be empty");
+        }
+        if (task.getStatus() == null || task.getStatus().isEmpty()) {
+            throw new IllegalArgumentException("Status cannot be empty");
         }
         if (task.getCategory() != null && task.getCategory().getId() != null) {
             categoryService.getCategoryById(task.getCategory().getId())
                     .orElseThrow(() -> new RuntimeException("Category not found"));
         }
-        return taskrepository.save(task);
+        return taskRepository.save(task);
     }
-    public List<Task> getAllTasks() {
-        return taskrepository.findAll();
-    }
-    public void deleteTaskById(Long id) {
-        Task task = taskrepository.findById(id).orElse(null);
-        if (task != null) {
-            taskrepository.delete(task);
-        }
-    }
-    public Task updateTask(Long id, Task updatedtask)
-    {
-        Optional<Task> existingTask = taskrepository.findById(id);
-        if(existingTask.isPresent())
-        {
-            Task task = existingTask.get();
-            task.setTitle(updatedtask.getTitle());
-            task.setStatus(updatedtask.getStatus());
-            task.setCategory(updatedtask.getCategory());
-            return taskrepository.save(task);
-        }
-        else
-        {
-            return null;
-        }
 
+    public List<Task> getAllTasks() {
+        return taskRepository.findAll();
+    }
+
+    public void deleteTaskById(Long id) {
+        if (!taskRepository.existsById(id)) {
+            throw new RuntimeException("Task not found");
+        }
+        taskRepository.deleteById(id);
+    }
+
+    public Task updateTask(Long id, Task updatedTask) {
+        Optional<Task> existingTask = taskRepository.findById(id);
+        if (existingTask.isPresent()) {
+            Task task = existingTask.get();
+            if (updatedTask.getTitle() == null || updatedTask.getTitle().isEmpty()) {
+                throw new IllegalArgumentException("Title cannot be empty");
+            }
+            if (updatedTask.getStatus() == null || updatedTask.getStatus().isEmpty()) {
+                throw new IllegalArgumentException("Status cannot be empty");
+            }
+            task.setTitle(updatedTask.getTitle());
+            task.setStatus(updatedTask.getStatus());
+            task.setCategory(updatedTask.getCategory());
+            task.setDueDate(updatedTask.getDueDate());
+            return taskRepository.save(task);
+        } else {
+            throw new RuntimeException("Task not found");
+        }
     }
 }

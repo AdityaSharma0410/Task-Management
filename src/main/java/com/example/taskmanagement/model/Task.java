@@ -2,6 +2,9 @@ package com.example.taskmanagement.model;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 @Entity
 public class Task {
     @Id
@@ -14,6 +17,8 @@ public class Task {
     @ManyToOne
     @JoinColumn(name = "category_id")
     Category category;
+    @Column(name = "due_date")
+    LocalDate dueDate;
 
     public Long getId() {
         return id;
@@ -45,5 +50,13 @@ public class Task {
 
     public void setCategory(Category category) {
         this.category = category;
+    }
+
+    public LocalDate getDueDate() {
+        return dueDate;
+    }
+
+    public void setDueDate(LocalDate dueDate) {
+        this.dueDate = dueDate;
     }
 }
